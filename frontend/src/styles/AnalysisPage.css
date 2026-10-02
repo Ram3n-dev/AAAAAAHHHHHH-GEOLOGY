@@ -1,0 +1,83 @@
+.analysis-page { max-width: 1400px; margin: 0 auto; }
+.analysis-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+.analysis-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #1a1f2e;
+  border: 1px solid #2a3040;
+  border-radius: 8px;
+  color: #a0aec0;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.analysis-tab:hover { background: #2a3040; color: #e0e6ed; }
+.analysis-tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+}
+.analysis-content { display: flex; flex-direction: column; gap: 24px; }
+.analysis-card {
+  background: #1a1f2e;
+  border: 1px solid #2a3040;
+  border-radius: 12px;
+  padding: 24px;
+}
+.analysis-card h3 { margin-bottom: 24px; font-size: 18px; }
+.analysis-insights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+.insight-card {
+  background: #1a1f2e;
+  border: 1px solid #2a3040;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.insight-card svg { color: #667eea; flex-shrink: 0; }
+.insight-card h4 { font-size: 16px; margin-bottom: 4px; }
+.insight-card p { color: #a0aec0; font-size: 14px; }
+
+.ml-section { display: flex; justify-content: center; }
+.ml-card {
+  background: #1a1f2e;
+  border: 1px solid #2a3040;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+.ml-card svg { color: #667eea; margin-bottom: 16px; }
+.ml-card h3 { font-size: 24px; margin-bottom: 8px; }
+.ml-card > p { color: #a0aec0; margin-bottom: 32px; }
+.ml-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.metric { text-align: center; }
+.metric-value {
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+.metric-label { color: #a0aec0; font-size: 14px; }

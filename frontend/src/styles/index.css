@@ -1,0 +1,88 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #0a0e1a;
+  color: #e0e6ed;
+}
+
+#root { min-height: 100vh; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #1a1f2e; }
+::-webkit-scrollbar-thumb { background: #3a4a5e; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #4a5a6e; }
+
+.leaflet-container { width: 100%; height: 100%; background: #0a0e1a; }
+
+.leaflet-control-zoom a {
+  background: #1a1f2e !important;
+  color: #e0e6ed !important;
+  border-color: #2a3040 !important;
+}
+.leaflet-control-zoom a:hover { background: #2a3040 !important; }
+
+.container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+  background: #1a1f2e;
+  color: #e0e6ed;
+  border: 1px solid #2a3040;
+}
+.btn-secondary:hover { background: #2a3040; }
+
+.card {
+  background: #1a1f2e;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #2a3040;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  background: #0a0e1a;
+  border: 1px solid #2a3040;
+  border-radius: 6px;
+  color: #e0e6ed;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #a0aec0;
+}

@@ -1,0 +1,77 @@
+export const mockAreas = [
+  {
+    id: 1,
+    name: 'Участок "Северный-1"',
+    coordinates: [
+      [55.8, 37.5],
+      [55.8, 37.7],
+      [55.9, 37.7],
+      [55.9, 37.5],
+    ],
+    status: 'active',
+    priority: 'high',
+    mineralType: 'Золото',
+    estimatedReserves: '15.2 т',
+    explorationStage: 'Детальная разведка',
+  },
+  {
+    id: 2,
+    name: 'Участок "Восточный"',
+    coordinates: [
+      [55.7, 37.8],
+      [55.7, 38.0],
+      [55.8, 38.0],
+      [55.8, 37.8],
+    ],
+    status: 'active',
+    priority: 'medium',
+    mineralType: 'Медь',
+    estimatedReserves: '120 тыс. т',
+    explorationStage: 'Предварительная разведка',
+  },
+  {
+    id: 3,
+    name: 'Участок "Западный"',
+    coordinates: [
+      [55.6, 37.3],
+      [55.6, 37.5],
+      [55.7, 37.5],
+      [55.7, 37.3],
+    ],
+    status: 'planning',
+    priority: 'low',
+    mineralType: 'Железо',
+    estimatedReserves: '5.8 млн т',
+    explorationStage: 'Поисковые работы',
+  },
+]
+
+export const mockDataPoints = [
+  {
+    id: 1,
+    areaId: 1,
+    type: 'borehole',
+    coordinates: [55.85, 37.6],
+    depth: 450,
+    samples: 24,
+    date: '2024-03-15',
+  },
+  {
+    id: 2,
+    areaId: 1,
+    type: 'sample',
+    coordinates: [55.83, 37.62],
+    mineral: 'Au',
+    concentration: 2.5,
+    date: '2024-03-20',
+  },
+  {
+    id: 3,
+    areaId: 2,
+    type: 'borehole',
+    coordinates: [55.75, 37.9],
+    depth: 320,
+    samples: 18,
+    date: '2024-02-28',
+  },
+]
