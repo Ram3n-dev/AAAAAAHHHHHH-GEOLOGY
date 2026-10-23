@@ -1,0 +1,190 @@
+/* =========================================
+   GeoLens Dark Pro — Header
+   ========================================= */
+
+.header {
+  position: relative;
+  z-index: 50;
+
+  display: flex;
+  flex: 0 0 70px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  height: 70px;
+  min-width: 0;
+  padding: 0 28px;
+
+  background: rgba(14, 21, 30, 0.96);
+  border-bottom: 1px solid var(--border, #263544);
+}
+
+.header-search {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  width: 100%;
+  max-width: 440px;
+  min-width: 0;
+  height: 40px;
+  padding: 0 13px;
+
+  border: 1px solid var(--border, #263544);
+  border-radius: 10px;
+  background: var(--bg-input, #0d151e);
+  color: var(--text-muted, #718396);
+
+  transition: border-color 0.2s ease, box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.header-search:focus-within {
+  border-color: var(--accent, #35d0c1);
+  background: var(--bg-panel, #121c27);
+  box-shadow: 0 0 0 3px var(--accent-soft, rgba(53, 208, 193, 0.12));
+}
+
+.header-search > svg {
+  flex-shrink: 0;
+  color: var(--text-muted, #718396);
+}
+
+.header-search:focus-within > svg {
+  color: var(--accent, #35d0c1);
+}
+
+.search-input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+
+  border: none;
+  outline: none;
+  background: transparent;
+
+  color: var(--text-primary, #e6edf5);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted, #718396);
+}
+
+.search-input:focus {
+  outline: none;
+}
+
+.header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-btn {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+  padding: 0;
+
+  border: 1px solid var(--border, #263544);
+  border-radius: 10px;
+  background: var(--bg-panel, #121c27);
+  color: var(--text-secondary, #9aabba);
+
+  cursor: pointer;
+  transition: color 0.18s ease, background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.icon-btn:hover {
+  background: var(--bg-panel-hover, #192633);
+  border-color: var(--border-hover, #3b5365);
+  color: var(--accent, #35d0c1);
+}
+
+.icon-btn:focus-visible {
+  outline: 2px solid var(--accent, #35d0c1);
+  outline-offset: 2px;
+}
+
+.icon-btn svg {
+  flex-shrink: 0;
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+
+  border: 2px solid var(--bg-sidebar, #0e151e);
+  border-radius: 999px;
+  background: var(--danger, #f16f78);
+  color: #fff;
+
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1;
+}
+
+/* Tablet */
+
+@media (max-width: 900px) {
+  .header {
+    gap: 14px;
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .header-search {
+    max-width: 380px;
+  }
+}
+
+/* Phone */
+
+@media (max-width: 600px) {
+  .header {
+    flex-basis: 60px;
+    height: 60px;
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  .header-search {
+    height: 38px;
+    gap: 8px;
+    padding: 0 10px;
+  }
+
+  .search-input {
+    font-size: 12px;
+  }
+
+  .header-actions {
+    gap: 6px;
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+}

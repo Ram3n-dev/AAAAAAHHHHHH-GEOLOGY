@@ -1,0 +1,92 @@
+.data-page { max-width: 1400px; margin: 0 auto; }
+.data-toolbar { display: flex; gap: 16px; margin-bottom: 24px; align-items: center; }
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #1a1f2e;
+  border: 1px solid #2a3040;
+  border-radius: 8px;
+  padding: 10px 16px;
+  flex: 1;
+  max-width: 400px;
+}
+.search-box input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #e0e6ed;
+  font-size: 14px;
+}
+.search-box input:focus { outline: none; }
+.filter-select {
+  background: #1a1f2e;
+  border: 1px solid #2a3040;
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: #e0e6ed;
+  font-size: 14px;
+  cursor: pointer;
+}
+.filter-select:focus { outline: none; border-color: #667eea; }
+
+.data-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-box {
+  background: #1a1f2e;
+  border: 1px solid #2a3040;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.stat-box svg { color: #667eea; }
+.stat-info { flex: 1; }
+.stat-box .stat-value { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+.stat-box .stat-label { color: #a0aec0; font-size: 13px; }
+
+.data-table-container {
+  background: #1a1f2e;
+  border: 1px solid #2a3040;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table thead { background: #0f1419; }
+.data-table th {
+  padding: 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.data-table td { padding: 16px; border-top: 1px solid #2a3040; font-size: 14px; }
+.data-table tbody tr:hover { background: #151b26; }
+.data-name { display: flex; align-items: center; gap: 8px; color: #e0e6ed; }
+.type-badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.type-samples { background: rgba(102, 126, 234, 0.2); color: #667eea; }
+.type-borehole { background: rgba(118, 75, 162, 0.2); color: #764ba2; }
+.type-geophysical { background: rgba(240, 147, 251, 0.2); color: #f093fb; }
+.type-lab { background: rgba(79, 172, 254, 0.2); color: #4facfe; }
+.action-buttons { display: flex; gap: 8px; }
+.icon-btn-sm {
+  width: 32px;
+  height: 32px;
+  background: #0f1419;
+  border: 1px solid #2a3040;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a0aec0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.icon-btn-sm:hover { background: #2a3040; color: #e0e6ed; }

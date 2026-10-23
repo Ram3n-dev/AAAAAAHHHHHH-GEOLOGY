@@ -1,0 +1,81 @@
+/* =========================================
+   GeoLens Dark Pro — Main Layout
+   ========================================= */
+
+.main-layout {
+  display: flex;
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg-main, #0b1118);
+  color: var(--text-primary, #e6edf5);
+}
+
+.main-content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin-left: 260px;
+
+  overflow: hidden;
+  background: var(--bg-main, #0b1118);
+}
+
+.page-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+
+  padding: 24px;
+  overflow: auto;
+
+  background: var(--bg-main, #0b1118);
+}
+
+/* Smooth page scrolling */
+
+.page-content {
+  scrollbar-width: thin;
+  scrollbar-color: #354859 transparent;
+}
+
+.page-content::-webkit-scrollbar {
+  width: 7px;
+}
+
+.page-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.page-content::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background: #354859;
+}
+
+/* Tablet */
+
+@media (max-width: 900px) {
+  .main-content {
+    margin-left: 220px;
+  }
+
+  .page-content {
+    padding: 18px;
+  }
+}
+
+/* Phone: matches the compact sidebar width */
+
+@media (max-width: 600px) {
+  .main-content {
+    margin-left: 68px;
+  }
+
+  .page-content {
+    padding: 12px;
+  }
+}
