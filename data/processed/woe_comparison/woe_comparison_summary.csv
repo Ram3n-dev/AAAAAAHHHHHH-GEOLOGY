@@ -1,0 +1,43 @@
+﻿model,features,n_bins,alpha,area_fraction,mean_precision_at_k,std_precision_at_k,mean_success_rate,std_success_rate,mean_found_expected,total_test_deposits,folds
+WoE baseline,"elevation, magnetic, gravity",3,0.5,0.01,0.0,0.0,0.0,0.0,0.0,11,5
+WoE baseline,"elevation, magnetic, gravity",3,0.5,0.05,0.0,0.0,0.0,0.0,0.0,11,5
+WoE baseline,"elevation, magnetic, gravity",3,0.5,0.1,1.614883291725371e-05,3.610988816026553e-05,0.005571347356452519,0.012457911415291586,0.027856736782262644,11,5
+WoE baseline,"elevation, magnetic, gravity",5,0.5,0.01,0.0,0.0,0.0,0.0,0.0,11,5
+WoE baseline,"elevation, magnetic, gravity",5,0.5,0.05,0.0,0.0,0.0,0.0,0.0,11,5
+WoE baseline,"elevation, magnetic, gravity",5,0.5,0.1,0.0,0.0,0.0,0.0,0.0,11,5
+WoE geological,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",3,0.5,0.01,,,,,0.2,11,5
+WoE geological,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",3,0.5,0.05,,,,,0.4,11,5
+WoE geological,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",3,0.5,0.1,,,,,0.451948051948052,11,5
+WoE geological,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",5,0.5,0.01,,,,,0.0,11,5
+WoE geological,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",5,0.5,0.05,,,,,0.0,11,5
+WoE geological,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",5,0.5,0.1,,,,,0.0,11,5
+WoE geological,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",7,0.5,0.01,,,,,0.0,11,5
+WoE geological,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",7,0.5,0.05,,,,,0.2,11,5
+WoE geological,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",7,0.5,0.1,,,,,0.4,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",3,0.1,0.01,0.00115606936416184,0.0025850496849708334,0.04,0.0894427190999916,0.2,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",3,0.1,0.05,0.00023174971031285997,0.000518208106025439,0.04,0.0894427190999916,0.2,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",3,0.1,0.1,0.00052577809455926,0.0008878331550275248,0.24,0.43358966777357605,0.4,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",3,0.5,0.01,0.00115606936416184,0.0025850496849708334,0.04,0.0894427190999916,0.2,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",3,0.5,0.05,0.00046349942062571994,0.001036416212050878,0.08,0.1788854381999832,0.4,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",3,0.5,0.1,0.00033833498409404,0.0005136140557435134,0.13194805194805195,0.18735898728477673,0.451948051948052,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",3,1.0,0.01,0.0,0.0,0.0,0.0,0.0,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",3,1.0,0.05,0.00046349942062571994,0.001036416212050878,0.08,0.1788854381999832,0.4,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",3,1.0,0.1,0.000231884057971,0.0005185085165216579,0.08,0.1788854381999832,0.4,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",5,0.1,0.01,0.0,0.0,0.0,0.0,0.0,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",5,0.1,0.05,0.0,0.0,0.0,0.0,0.0,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",5,0.1,0.1,0.0,0.0,0.0,0.0,0.0,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",5,0.5,0.01,0.0,0.0,0.0,0.0,0.0,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",5,0.5,0.05,0.0,0.0,0.0,0.0,0.0,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",5,0.5,0.1,0.0,0.0,0.0,0.0,0.0,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",5,1.0,0.01,0.0,0.0,0.0,0.0,0.0,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",5,1.0,0.05,0.0,0.0,0.0,0.0,0.0,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",5,1.0,0.1,0.0001159420289855,0.00025925425826082895,0.04,0.0894427190999916,0.2,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",7,0.1,0.01,0.0,0.0,0.0,0.0,0.0,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",7,0.1,0.05,0.0,0.0,0.0,0.0,0.0,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",7,0.1,0.1,0.00040983606557376003,0.0009164213022539887,0.2,0.447213595499958,0.2,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",7,0.5,0.01,0.0,0.0,0.0,0.0,0.0,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",7,0.5,0.05,0.00023174971031285997,0.000518208106025439,0.04,0.0894427190999916,0.2,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",7,0.5,0.1,0.00052577809455926,0.0008878331550275248,0.24,0.43358966777357605,0.4,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",7,1.0,0.01,0.00115606936416184,0.0025850496849708334,0.04,0.0894427190999916,0.2,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",7,1.0,0.05,0.00023174971031285997,0.000518208106025439,0.04,0.0894427190999916,0.2,11,5
+WoE sensitivity,"elevation, magnetic, gravity, dist_fault_km, dist_contact_km, lithology_group",7,1.0,0.1,0.00052577809455926,0.0008878331550275248,0.24,0.43358966777357605,0.4,11,5
