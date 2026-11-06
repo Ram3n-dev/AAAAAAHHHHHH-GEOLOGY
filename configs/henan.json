@@ -1,0 +1,37 @@
+{
+  "_comment": "Henan (Zenodo 22347352). 1) Заполните build.groups по выводу henan_inspect.py (замените TODO). 2) Запустите henan_build_table.py. 3) Запустите run_protocol.py. Все значения фиксируются ДО просмотра результатов.",
+  "build": {
+    "evidence_tif": "data/external/henan/raw/evidence layers_georeferencing.tif",
+    "deposit_tif": "data/external/henan/raw/deposit.tif",
+    "out_table": "data/external/henan/processed/features_table.csv",
+    "groups": {
+      "geochem": "1-39",
+      "magnetic": [40],
+      "geology_pre_weighted": "41-44",
+      "geology_other": []
+    },
+    "_groups_note": "Номера слоёв С ЕДИНИЦЫ, например \"1-39\" или [40]. Каждый слой — ровно в одной группе. geology_pre_weighted — слои, которые авторы уже взвесили по меткам (утечка), их исключаем. geology_other — остальные геологические слои, если они не взвешены.",
+    "categorical_groups": [],
+    "exclude_groups": ["geology_pre_weighted"]
+  },
+  "protocol": {
+    "table": "data/external/henan/processed/features_table.csv",
+    "out_dir": "results/henan",
+    "_folds_note": "Блок 15 км и буфер 3 км: на сетке Henan 93x209 при 500 м буфер отбрасывает ~9-14% обучения и оставляет >=23 обучающих месторождений на фолд. Блок 10 км + буфер 5 км отбрасывает ~40% и оставляет всего 7. Решение принято ДО просмотра результатов на реальных данных.",
+    "folds": {"block_km": 15, "n_folds": 5, "seed": 42},
+    "buffer_km": 3,
+    "fractions": [0.01, 0.05, 0.10],
+    "categorical_prefixes": [],
+    "feature_sets": {
+      "magnetic": {"prefix": "magnetic_"},
+      "geochem": {"prefix": "geochem_"},
+      "magnetic+geochem": {"prefixes": ["magnetic_", "geochem_"]}
+    },
+    "models": [
+      {"kind": "woe", "n_bins": 3, "categorical_prior": "background", "missing_as_neutral": true},
+      {"kind": "woe", "n_bins": 5, "categorical_prior": "background", "missing_as_neutral": true},
+      {"kind": "logreg"}
+    ],
+    "stability": {"enabled": true, "fraction": 0.10, "feature_sets": ["magnetic+geochem"]}
+  }
+}

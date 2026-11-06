@@ -1,0 +1,20 @@
+{
+  "_comment": "Енисейский кряж. Запуск: python backend/scripts/run_protocol.py configs/yenisei.json",
+  "protocol": {
+    "table": "data/processed/features_table_geo.csv",
+    "out_dir": "results/yenisei",
+    "fractions": [0.01, 0.05, 0.10],
+    "buffer_km": 0,
+    "categorical": ["lithology_group"],
+    "feature_sets": {
+      "baseline_3": ["elevation", "magnetic", "gravity"],
+      "all_6": ["elevation", "magnetic", "gravity", "dist_fault_km", "dist_contact_km", "lithology_group"]
+    },
+    "models": [
+      {"kind": "woe", "n_bins": 3, "categorical_prior": "background", "missing_as_neutral": true},
+      {"kind": "woe", "n_bins": 5, "categorical_prior": "background", "missing_as_neutral": true},
+      {"kind": "logreg"}
+    ],
+    "stability": {"enabled": true, "fraction": 0.10, "feature_sets": ["all_6"], "entity_col": "deposit_name"}
+  }
+}
