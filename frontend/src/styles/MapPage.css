@@ -908,3 +908,54 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Легенда карты перспективности (Р-5, градиент viridis 0–1) */
+
+.legend-gradient-row {
+  align-items: center;
+}
+
+.legend-gradient {
+  flex: 1 1 auto;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    #440154,
+    #3b528b,
+    #21918c,
+    #5ec962,
+    #fde725
+  );
+}
+
+.legend-gradient-scale {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px;
+  color: var(--map-muted);
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.legend-note {
+  color: var(--map-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.legend-deposit {
+  background: #60a5fa;
+}
+
+/* Попап кликнутой ячейки */
+
+.cell-popup-hint {
+  color: #526171;
+  font-size: 11px;
+}
+
+.cell-popup-subheading {
+  margin-top: 9px !important;
+  font-weight: 700;
+}

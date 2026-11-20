@@ -1,13 +1,14 @@
-
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   MapContainer,
   TileLayer,
-  Polygon,
   Marker,
   Popup,
+  ImageOverlay,
   useMap,
+  useMapEvents,
 } from 'react-leaflet'
+import L from 'leaflet'
 import {
   Layers,
   ZoomIn,
@@ -15,19 +16,47 @@ import {
   Maximize2,
   MapPinned,
   CircleDot,
-  Drill,
-  FlaskConical,
   Activity,
   Check,
   X,
 } from 'lucide-react'
 import { useMapStore } from '../stores/mapStore'
-import { mockAreas, mockDataPoints } from '../mock/areas'
+import {
+  getCell,
+  getDeposits,
+  getScoresMapPngUrl,
+} from '../services/api'
+import markerIcon from 'leaflet/dist/images/marker-icon.png'
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
+import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import 'leaflet/dist/leaflet.css'
 import '../styles/MapPage.css'
 
+// Иконка маркера — отдельным L.Icon, а не через Icon.Default:
+// дефолтная иконка Leaflet дописывает свой imagePath к заданному URL,
+// и под Vite получается двойной путь вида
+// /node_modules/leaflet/dist/images//node_modules/leaflet/dist/images/marker-icon.png.
+// У обычного L.Icon такого дописывания нет.
+const depositIcon = new L.Icon({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+})
+
 const DEFAULT_BOUNDS_PADDING = [40, 40]
 const MAX_FIT_ZOOM = 12
+
+// Границы растра scores-map.png: bbox центров ячеек площади PoC (Р-5).
+// Сетка в метрах EPSG:32646, поэтому растр — диагностическая карта,
+// а не геопривязанный GeoTIFF.
+const SCORES_BOUNDS = [
+  [58.5, 92.3],
+  [60.6, 95.0],
+]
 
 function isValidPosition(position) {
   return (
@@ -44,73 +73,43 @@ function isValidPosition(position) {
   )
 }
 
-function collectPositions(value, result = []) {
-  if (!Array.isArray(value)) return result
-
-  if (isValidPosition(value)) {
-    result.push([value[0], value[1]])
-    return result
-  }
-
-  value.forEach((item) => collectPositions(item, result))
-  return result
-}
-
-function getAreaColor(priority) {
-  switch (priority) {
-    case 'high':
-      return '#f87171'
-    case 'medium':
-      return '#fbbf24'
-    case 'low':
-      return '#34d399'
-    default:
-      return '#5eead4'
-  }
-}
-
-function getPriorityLabel(priority) {
-  switch (priority) {
-    case 'high':
-      return 'Высокий'
-    case 'medium':
-      return 'Средний'
-    case 'low':
-      return 'Низкий'
-    default:
-      return 'Не указан'
-  }
-}
-
-function getAreaBounds(area) {
-  const positions = collectPositions(area?.coordinates)
-  return positions.length > 0 ? positions : null
-}
-
-function getPointTypeLabel(type) {
-  if (type === 'borehole') return 'Скважина'
-  if (type === 'sample') return 'Проба'
-  return 'Точка данных'
-}
-
-function MapViewport({ selectedArea, allPositions }) {
+function MapViewport({ allPositions }) {
   const map = useMap()
 
   useEffect(() => {
-    const selectedPositions = selectedArea
-      ? getAreaBounds(selectedArea)
-      : null
+    if (!allPositions || allPositions.length === 0) return
 
-    const positions =
-      selectedPositions?.length > 0 ? selectedPositions : allPositions
-
-    if (!positions || positions.length === 0) return
-
-    map.fitBounds(positions, {
+    map.fitBounds(allPositions, {
       padding: DEFAULT_BOUNDS_PADDING,
       maxZoom: MAX_FIT_ZOOM,
     })
-  }, [map, selectedArea, allPositions])
+  }, [map, allPositions])
+
+  return null
+}
+
+// Клик по карточке месторождения в сайдбаре: долететь до маркера.
+function MapFlyTo({ target }) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!target || !isValidPosition([target.latitude, target.longitude])) {
+      return
+    }
+
+    map.flyTo([target.latitude, target.longitude], Math.max(map.getZoom(), 9))
+  }, [map, target])
+
+  return null
+}
+
+// Клик по карте: запрашиваем оценку ячейки у бэкенда.
+function MapClickHandler({ onPickCell }) {
+  useMapEvents({
+    click(event) {
+      onPickCell(event.latlng.lat, event.latlng.lng)
+    },
+  })
 
   return null
 }
@@ -230,6 +229,64 @@ function LayerToggle({
   )
 }
 
+// Попап кликнутой ячейки: оценка, вклады, месторождение или нет.
+function CellPopupContent({ cell }) {
+  if (!cell) return null
+
+  if (cell.loading) {
+    return (
+      <div className="popup-content">
+        <h4>Ячейка {cell.latitude.toFixed(4)}, {cell.longitude.toFixed(4)}</h4>
+        <p>Загрузка оценки…</p>
+      </div>
+    )
+  }
+
+  if (cell.error) {
+    return (
+      <div className="popup-content">
+        <h4>Ячейка {cell.latitude.toFixed(4)}, {cell.longitude.toFixed(4)}</h4>
+        <p>Не удалось получить оценку: {cell.error}</p>
+      </div>
+    )
+  }
+
+  const data = cell.data
+  if (!data) return null
+
+  const topContributions = [...(data.contributions || [])]
+    .sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution))
+    .slice(0, 3)
+
+  return (
+    <div className="popup-content cell-popup">
+      <h4>{data.deposit_name || 'Ячейка без месторождения'}</h4>
+      <p>
+        <strong>Оценка:</strong> {data.score.toFixed(3)}
+        <span className="cell-popup-hint"> (перцентиль 0–1, не вероятность)</span>
+      </p>
+      <p>
+        <strong>Сырая сумма WoE:</strong> {data.score_raw.toFixed(3)}
+      </p>
+      <p>
+        <strong>Фолд:</strong> {data.fold_id}
+      </p>
+
+      {topContributions.length > 0 && (
+        <>
+          <p className="cell-popup-subheading">Главные вклады:</p>
+          {topContributions.map((item) => (
+            <p key={item.feature}>
+              {item.feature}: {item.contribution > 0 ? '+' : ''}
+              {item.contribution.toFixed(2)}
+            </p>
+          ))}
+        </>
+      )}
+    </div>
+  )
+}
+
 function MapPage() {
   const {
     selectedArea,
@@ -238,54 +295,68 @@ function MapPage() {
     mapZoom,
   } = useMapStore()
 
-  const [showDataPoints, setShowDataPoints] = useState(true)
-  const [showGeologicalBoundaries, setShowGeologicalBoundaries] =
-    useState(true)
+  const [deposits, setDeposits] = useState([])
+  const [depositsStatus, setDepositsStatus] = useState('loading')
+  const [depositsError, setDepositsError] = useState('')
+  const [showDeposits, setShowDeposits] = useState(true)
+  const [showScores, setShowScores] = useState(true)
   const [showSeismicData, setShowSeismicData] = useState(false)
   const [baseLayer, setBaseLayer] = useState('standard')
+  const [clickedCell, setClickedCell] = useState(null)
 
-  const validAreas = useMemo(
+  const loadDeposits = useCallback(async () => {
+    setDepositsStatus('loading')
+    setDepositsError('')
+    try {
+      const data = await getDeposits()
+      setDeposits(Array.isArray(data) ? data : [])
+      setDepositsStatus('ready')
+    } catch (error) {
+      setDepositsStatus('error')
+      setDepositsError(
+        error?.response?.status
+          ? `Бэкенд ответил ${error.response.status}`
+          : 'Бэкенд недоступен. Проверьте, что API запущен на :8000.'
+      )
+    }
+  }, [])
+
+  useEffect(() => {
+    loadDeposits()
+  }, [loadDeposits])
+
+  const depositPositions = useMemo(
     () =>
-      mockAreas.filter(
-        (area) => (getAreaBounds(area)?.length ?? 0) >= 3
-      ),
-    []
+      deposits
+        .map((deposit) => [deposit.latitude, deposit.longitude])
+        .filter((position) => isValidPosition(position)),
+    [deposits]
   )
 
-  const validDataPoints = useMemo(
-    () =>
-      mockDataPoints.filter((point) =>
-        isValidPosition(point.coordinates)
-      ),
-    []
+  const allPositions = useMemo(
+    () => [...depositPositions],
+    [depositPositions]
   )
 
-  const pointCounts = useMemo(
-    () => ({
-      boreholes: validDataPoints.filter(
-        (point) => point.type === 'borehole'
-      ).length,
-      samples: validDataPoints.filter(
-        (point) => point.type === 'sample'
-      ).length,
-      other: validDataPoints.filter(
-        (point) =>
-          point.type !== 'borehole' && point.type !== 'sample'
-      ).length,
-    }),
-    [validDataPoints]
-  )
-
-  const allPositions = useMemo(() => {
-    const areaPositions = validAreas.flatMap((area) =>
-      collectPositions(area.coordinates)
-    )
-    const pointPositions = validDataPoints.flatMap((point) =>
-      collectPositions(point.coordinates)
-    )
-
-    return [...areaPositions, ...pointPositions]
-  }, [validAreas, validDataPoints])
+  // Клик по карте или по маркеру: одна и та же оценка ячейки.
+  const handlePickCell = useCallback(async (latitude, longitude) => {
+    setClickedCell({ latitude, longitude, loading: true, data: null, error: '' })
+    try {
+      const data = await getCell(latitude, longitude)
+      setClickedCell({ latitude, longitude, loading: false, data, error: '' })
+    } catch (error) {
+      setClickedCell({
+        latitude,
+        longitude,
+        loading: false,
+        data: null,
+        error:
+          error?.response?.status === 404
+            ? 'Точка вне площади проекта.'
+            : 'Бэкенд недоступен.',
+      })
+    }
+  }, [])
 
   const handleToggleBaseLayer = () => {
     setBaseLayer((current) =>
@@ -293,19 +364,22 @@ function MapPage() {
     )
   }
 
-  const handleSelectArea = (area) => {
-    setSelectedArea(
-      selectedArea?.id === area.id ? null : area
-    )
+  const handleSelectDeposit = (deposit) => {
+    const isSelected = selectedArea?.name === deposit.name
+    setSelectedArea(isSelected ? null : deposit)
+    if (!isSelected) {
+      handlePickCell(deposit.latitude, deposit.longitude)
+    }
   }
 
   const handleClearSelection = () => {
     setSelectedArea(null)
+    setClickedCell(null)
   }
 
   const enabledLayersCount = [
-    showDataPoints,
-    showGeologicalBoundaries,
+    showDeposits,
+    showScores,
     showSeismicData,
   ].filter(Boolean).length
 
@@ -318,7 +392,7 @@ function MapPage() {
           </div>
           <div>
             <h2>Геокарта</h2>
-            <p>Пространственные данные проекта</p>
+            <p>Енисейский кряж — перспективность золота</p>
           </div>
         </div>
 
@@ -326,79 +400,90 @@ function MapPage() {
           <section className="sidebar-section">
             <div className="section-heading">
               <div>
-                <h3>Участки</h3>
-                <p>Выберите участок для приближения</p>
+                <h3>Месторождения</h3>
+                <p>Выберите месторождение для приближения</p>
               </div>
-              <span className="section-count">{validAreas.length}</span>
+              <span className="section-count">{deposits.length}</span>
             </div>
 
-            <div className="areas-list">
-              {validAreas.length === 0 ? (
-                <div className="map-empty-state">
-                  <MapPinned size={22} />
-                  <p>Нет участков с корректными координатами.</p>
-                </div>
-              ) : (
-                validAreas.map((area) => {
-                  const isSelected = selectedArea?.id === area.id
+            {depositsStatus === 'loading' && (
+              <div className="map-empty-state">
+                <MapPinned size={22} />
+                <p>Загрузка месторождений из GeoLens API…</p>
+              </div>
+            )}
 
-                  return (
-                    <button
-                      type="button"
-                      key={area.id}
-                      className={`area-card ${
-                        isSelected ? 'active' : ''
-                      }`}
-                      onClick={() => handleSelectArea(area)}
-                      aria-pressed={isSelected}
-                    >
-                      <span
-                        className="area-color-indicator"
-                        style={{
-                          backgroundColor: getAreaColor(area.priority),
-                        }}
-                      />
+            {depositsStatus === 'error' && (
+              <div className="map-empty-state">
+                <MapPinned size={22} />
+                <p>Месторождения не загрузились: {depositsError}</p>
+                <button
+                  type="button"
+                  className="clear-selection-btn"
+                  onClick={loadDeposits}
+                >
+                  Повторить
+                </button>
+              </div>
+            )}
 
-                      <span className="area-card-content">
-                        <span className="area-header">
-                          <span className="area-name">{area.name}</span>
-                          <span
-                            className={`area-priority priority-${area.priority || 'default'}`}
-                          >
-                            {getPriorityLabel(area.priority)}
+            {depositsStatus === 'ready' && (
+              <div className="areas-list">
+                {deposits.length === 0 ? (
+                  <div className="map-empty-state">
+                    <MapPinned size={22} />
+                    <p>Бэкенд не вернул месторождений.</p>
+                  </div>
+                ) : (
+                  deposits.map((deposit) => {
+                    const isSelected = selectedArea?.name === deposit.name
+
+                    return (
+                      <button
+                        type="button"
+                        key={deposit.name}
+                        className={`area-card ${
+                          isSelected ? 'active' : ''
+                        }`}
+                        onClick={() => handleSelectDeposit(deposit)}
+                        aria-pressed={isSelected}
+                      >
+                        <span
+                          className="area-color-indicator"
+                          style={{ backgroundColor: '#5eead4' }}
+                        />
+
+                        <span className="area-card-content">
+                          <span className="area-header">
+                            <span className="area-name">{deposit.name}</span>
+                          </span>
+
+                          <span className="area-details">
+                            <span className="area-detail">
+                              <span>Фолд</span>
+                              <strong>{deposit.fold_id}</strong>
+                            </span>
+                            <span className="area-detail">
+                              <span>Координаты</span>
+                              <strong>
+                                {deposit.latitude.toFixed(3)},{' '}
+                                {deposit.longitude.toFixed(3)}
+                              </strong>
+                            </span>
                           </span>
                         </span>
 
-                        <span className="area-details">
-                          <span className="area-detail">
-                            <span>Минерал</span>
-                            <strong>{area.mineralType || 'Не указан'}</strong>
+                        {isSelected && (
+                          <span className="area-selected-icon">
+                            <Check size={15} />
                           </span>
-                          <span className="area-detail">
-                            <span>Запасы</span>
-                            <strong>
-                              {area.estimatedReserves ?? 'Нет данных'}
-                            </strong>
-                          </span>
-                          <span className="area-detail">
-                            <span>Этап</span>
-                            <strong>
-                              {area.explorationStage || 'Не указан'}
-                            </strong>
-                          </span>
-                        </span>
-                      </span>
-
-                      {isSelected && (
-                        <span className="area-selected-icon">
-                          <Check size={15} />
-                        </span>
-                      )}
-                    </button>
-                  )
-                })
-              )}
-            </div>
+                        )}
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+            )}
 
             {selectedArea && (
               <button
@@ -425,33 +510,22 @@ function MapPage() {
 
             <div className="layers-list">
               <LayerToggle
-                checked={showGeologicalBoundaries}
-                onChange={setShowGeologicalBoundaries}
+                checked={showScores}
+                onChange={setShowScores}
                 icon={Layers}
-                title="Границы участков"
-                description="Полигоны и контуры"
-                count={validAreas.length}
+                title="Карта перспективности"
+                description="Растр оценок с бэкенда (scores.png)"
                 color="#5eead4"
               />
 
               <LayerToggle
-                checked={showDataPoints}
-                onChange={setShowDataPoints}
-                icon={Drill}
-                title="Скважины"
-                description="Точки бурения"
-                count={pointCounts.boreholes}
+                checked={showDeposits}
+                onChange={setShowDeposits}
+                icon={MapPinned}
+                title="Месторождения"
+                description="11 известных месторождений"
+                count={deposits.length}
                 color="#60a5fa"
-              />
-
-              <LayerToggle
-                checked={showDataPoints}
-                onChange={setShowDataPoints}
-                icon={FlaskConical}
-                title="Пробы и измерения"
-                description="Точки отбора проб"
-                count={pointCounts.samples + pointCounts.other}
-                color="#c084fc"
               />
 
               <LayerToggle
@@ -485,25 +559,22 @@ function MapPage() {
             </div>
 
             <div className="legend-list">
-              <div className="legend-item">
-                <span className="legend-polygon legend-high" />
-                <span>Высокий приоритет</span>
+              <div className="legend-item legend-gradient-row">
+                <span className="legend-gradient" aria-hidden="true" />
+                <span>Перцентиль оценки: 0 — низкая, 1 — высокая</span>
+              </div>
+              <div className="legend-gradient-scale" aria-hidden="true">
+                <span>0</span>
+                <span>0,5</span>
+                <span>1</span>
               </div>
               <div className="legend-item">
-                <span className="legend-polygon legend-medium" />
-                <span>Средний приоритет</span>
+                <span className="legend-point legend-deposit" />
+                <span>Месторождение</span>
               </div>
-              <div className="legend-item">
-                <span className="legend-polygon legend-low" />
-                <span>Низкий приоритет</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-point legend-borehole" />
-                <span>Скважина</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-point legend-sample" />
-                <span>Проба</span>
+              <div className="legend-note">
+                Оценка — перцентиль сырой суммы WoE среди всех ячеек,
+                а не вероятность месторождения.
               </div>
             </div>
           </section>
@@ -511,9 +582,9 @@ function MapPage() {
 
         <div className="map-sidebar-footer">
           <span className="map-status-dot" />
-          <span>Демонстрационные данные</span>
+          <span>Данные: GeoLens API</span>
           <span className="map-footer-count">
-            {validAreas.length} уч. · {validDataPoints.length} точ.
+            {deposits.length} мест.
           </span>
         </div>
       </aside>
@@ -532,11 +603,11 @@ function MapPage() {
           <div className="map-object-summary">
             <span>
               <MapPinned size={14} />
-              {validAreas.length} участков
+              {deposits.length} месторождений
             </span>
             <span>
               <CircleDot size={14} />
-              {showDataPoints ? validDataPoints.length : 0} точек
+              Клик по карте — оценка ячейки
             </span>
           </div>
         </div>
@@ -562,91 +633,44 @@ function MapPage() {
             />
           )}
 
-          <MapViewport
-            selectedArea={selectedArea}
-            allPositions={allPositions}
-          />
+          <MapViewport allPositions={allPositions} />
 
-          {showGeologicalBoundaries &&
-            validAreas.map((area) => (
-              <Polygon
-                key={area.id}
-                positions={area.coordinates}
-                pathOptions={{
-                  color: getAreaColor(area.priority),
-                  fillColor: getAreaColor(area.priority),
-                  fillOpacity: selectedArea?.id === area.id ? 0.35 : 0.16,
-                  weight: selectedArea?.id === area.id ? 3 : 2,
-                  opacity: 0.9,
-                }}
+          <MapFlyTo target={selectedArea} />
+
+          <MapClickHandler onPickCell={handlePickCell} />
+
+          {showScores && (
+            <ImageOverlay
+              url={getScoresMapPngUrl()}
+              bounds={SCORES_BOUNDS}
+              opacity={0.6}
+              zIndex={10}
+            />
+          )}
+
+          {showDeposits &&
+            deposits.map((deposit) => (
+              <Marker
+                key={deposit.name}
+                icon={depositIcon}
+                position={[deposit.latitude, deposit.longitude]}
                 eventHandlers={{
-                  click: () => setSelectedArea(area),
+                  click: () =>
+                    handlePickCell(deposit.latitude, deposit.longitude),
                 }}
-              >
-                <Popup>
-                  <div className="popup-content">
-                    <h4>{area.name}</h4>
-                    <p>
-                      <strong>Минерал:</strong>{' '}
-                      {area.mineralType || 'Не указан'}
-                    </p>
-                    <p>
-                      <strong>Запасы:</strong>{' '}
-                      {area.estimatedReserves ?? 'Нет данных'}
-                    </p>
-                    <p>
-                      <strong>Этап:</strong>{' '}
-                      {area.explorationStage || 'Не указан'}
-                    </p>
-                    <p>
-                      <strong>Приоритет:</strong>{' '}
-                      {getPriorityLabel(area.priority)}
-                    </p>
-                  </div>
-                </Popup>
-              </Polygon>
+              />
             ))}
 
-          {showDataPoints &&
-            validDataPoints.map((point) => (
-              <Marker key={point.id} position={point.coordinates}>
-                <Popup>
-                  <div className="popup-content">
-                    <h4>{point.name || getPointTypeLabel(point.type)}</h4>
-                    <p>
-                      <strong>Тип:</strong>{' '}
-                      {getPointTypeLabel(point.type)}
-                    </p>
-
-                    {point.type === 'borehole' && (
-                      <>
-                        <p>
-                          <strong>Глубина:</strong>{' '}
-                          {point.depth ?? 'Нет данных'} м
-                        </p>
-                        <p>
-                          <strong>Образцов:</strong>{' '}
-                          {point.samples ?? 'Нет данных'}
-                        </p>
-                      </>
-                    )}
-
-                    {point.type === 'sample' && (
-                      <>
-                        <p>
-                          <strong>Минерал:</strong>{' '}
-                          {point.mineral || 'Не указан'}
-                        </p>
-                        <p>
-                          <strong>Концентрация:</strong>{' '}
-                          {point.concentration ?? 'Нет данных'} г/т
-                        </p>
-                      </>
-                    )}
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
+          {clickedCell && (
+            <Popup
+              position={[clickedCell.latitude, clickedCell.longitude]}
+              eventHandlers={{
+                remove: () => setClickedCell(null),
+              }}
+            >
+              <CellPopupContent cell={clickedCell} />
+            </Popup>
+          )}
 
           <MapControls
             allPositions={allPositions}

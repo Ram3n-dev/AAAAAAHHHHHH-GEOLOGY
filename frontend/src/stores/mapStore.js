@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 
-const DEFAULT_MAP_CENTER = [55.7558, 37.6173]
-const DEFAULT_MAP_ZOOM = 10
+// Енисейский кряж, центр площади PoC (58.5-60.6 с. ш., 92.3-95.0 в. д.).
+const DEFAULT_MAP_CENTER = [59.55, 93.65]
+const DEFAULT_MAP_ZOOM = 7
 const MIN_MAP_ZOOM = 2
 const MAX_MAP_ZOOM = 19
 

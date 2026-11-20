@@ -1,29 +1,49 @@
-import { useState } from 'react'
-import { Upload, Download, Filter, Search, FileText, Database } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Upload, Download, Search, FileText, Database } from 'lucide-react'
+import { getDeposits, getScoresCsvUrl, getStats } from '../services/api'
 import '../styles/DataPage.css'
 
 function DataPage() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterType, setFilterType] = useState('all')
+  const [deposits, setDeposits] = useState([])
+  const [stats, setStats] = useState(null)
+  const [status, setStatus] = useState('loading')
+  const [error, setError] = useState('')
 
-  const mockData = [
-    { id: 1, name: 'Пробы участка "Северный-1"', type: 'samples', count: 124, date: '2024-03-20', size: '2.4 MB' },
-    { id: 2, name: 'Данные бурения Q1 2024', type: 'borehole', count: 48, date: '2024-03-15', size: '5.1 MB' },
-    { id: 3, name: 'Геофизические измерения', type: 'geophysical', count: 256, date: '2024-03-10', size: '12.8 MB' },
-    { id: 4, name: 'Лабораторные анализы', type: 'lab', count: 89, date: '2024-03-05', size: '1.8 MB' },
-  ]
+  const loadData = async () => {
+    setStatus('loading')
+    setError('')
+    try {
+      const [depositsData, statsData] = await Promise.all([
+        getDeposits(),
+        getStats(),
+      ])
+      setDeposits(Array.isArray(depositsData) ? depositsData : [])
+      setStats(statsData)
+      setStatus('ready')
+    } catch (err) {
+      setStatus('error')
+      setError(
+        err?.response?.status
+          ? `Бэкенд ответил ${err.response.status}`
+          : 'Бэкенд недоступен. Проверьте, что API запущен на :8000.'
+      )
+    }
+  }
 
-  const filteredData = mockData.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterType === 'all' || item.type === filterType
-    return matchesSearch && matchesFilter
-  })
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const filteredData = deposits.filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   return (
     <div className="data-page">
       <div className="page-header">
         <h1>Данные</h1>
-        <p>Управление геологическими данными и пробами</p>
+        <p>Месторождения и таблица признаков — из GeoLens API</p>
       </div>
 
       <div className="data-toolbar">
@@ -31,87 +51,116 @@ function DataPage() {
           <Search size={18} />
           <input
             type="text"
-            placeholder="Поиск данных..."
+            placeholder="Поиск месторождения..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <div className="filter-group">
-          <select className="filter-select" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-            <option value="all">Все типы</option>
-            <option value="samples">Пробы</option>
-            <option value="borehole">Бурение</option>
-            <option value="geophysical">Геофизика</option>
-            <option value="lab">Лаборатория</option>
-          </select>
-        </div>
+        <a className="btn btn-primary" href={getScoresCsvUrl()} download>
+          <Download size={18} />
+          Скачать scores.csv
+        </a>
 
-        <button className="btn btn-primary">
+        <button
+          className="btn btn-primary"
+          type="button"
+          disabled
+          title="Загрузка данных не подключена к бэкенду"
+        >
           <Upload size={18} />
           Загрузить данные
         </button>
       </div>
 
-      <div className="data-stats">
-        <div className="stat-box">
-          <Database size={24} />
-          <div className="stat-info">
-            <div className="stat-value">517</div>
-            <div className="stat-label">Всего записей</div>
+      {status === 'loading' && (
+        <div className="data-stats">
+          <div className="stat-box">
+            <Database size={24} />
+            <div className="stat-info">
+              <div className="stat-value">…</div>
+              <div className="stat-label">Загрузка из GeoLens API…</div>
+            </div>
           </div>
         </div>
-        <div className="stat-box">
-          <FileText size={24} />
-          <div className="stat-info">
-            <div className="stat-value">22.1 MB</div>
-            <div className="stat-label">Общий объём</div>
-          </div>
-        </div>
-      </div>
+      )}
 
-      <div className="data-table-container">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Название</th>
-              <th>Тип</th>
-              <th>Записей</th>
-              <th>Дата</th>
-              <th>Размер</th>
-              <th>Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.map((item) => (
-              <tr key={item.id}>
-                <td>
-                  <div className="data-name">
-                    <FileText size={16} />
-                    {item.name}
-                  </div>
-                </td>
-                <td>
-                  <span className={`type-badge type-${item.type}`}>
-                    {item.type === 'samples' ? 'Пробы' :
-                     item.type === 'borehole' ? 'Бурение' :
-                     item.type === 'geophysical' ? 'Геофизика' : 'Лаборатория'}
-                  </span>
-                </td>
-                <td>{item.count}</td>
-                <td>{item.date}</td>
-                <td>{item.size}</td>
-                <td>
-                  <div className="action-buttons">
-                    <button className="icon-btn-sm" title="Скачать"><Download size={16} /></button>
-                    <button className="icon-btn-sm" title="Фильтр"><Filter size={16} /></button>
-                  </div>
-                </td>
+      {status === 'error' && (
+        <div className="data-stats">
+          <div className="stat-box">
+            <Database size={24} />
+            <div className="stat-info">
+              <div className="stat-value">Ошибка</div>
+              <div className="stat-label">{error}</div>
+            </div>
+          </div>
+          <button className="btn btn-primary" type="button" onClick={loadData}>
+            Повторить
+          </button>
+        </div>
+      )}
+
+      {status === 'ready' && stats && (
+        <div className="data-stats">
+          <div className="stat-box">
+            <Database size={24} />
+            <div className="stat-info">
+              <div className="stat-value">{stats.cells}</div>
+              <div className="stat-label">Всего ячеек (1×1 км)</div>
+            </div>
+          </div>
+          <div className="stat-box">
+            <FileText size={24} />
+            <div className="stat-info">
+              <div className="stat-value">{stats.deposits}</div>
+              <div className="stat-label">Месторождений</div>
+            </div>
+          </div>
+          <div className="stat-box">
+            <FileText size={24} />
+            <div className="stat-info">
+              <div className="stat-value">{stats.lithology_missing}</div>
+              <div className="stat-label">Ячеек без литологии</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {status === 'ready' && (
+        <div className="data-table-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Фолд</th>
+                <th>Широта</th>
+                <th>Долгота</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filteredData.length === 0 ? (
+                <tr>
+                  <td colSpan={4}>Ничего не найдено.</td>
+                </tr>
+              ) : (
+                filteredData.map((item) => (
+                  <tr key={item.name}>
+                    <td>
+                      <div className="data-name">
+                        <FileText size={16} />
+                        {item.name}
+                      </div>
+                    </td>
+                    <td>{item.fold_id}</td>
+                    <td>{item.latitude.toFixed(4)}</td>
+                    <td>{item.longitude.toFixed(4)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
